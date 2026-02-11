@@ -5,6 +5,9 @@ import br.com.cotiinformatica.api_clientes.factories.ConnectionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Repository
 public class ClienteRepository {
 
@@ -35,4 +38,71 @@ public class ClienteRepository {
         connection.close(); //Fechar a conexão
 
     }
+
+    /*
+        Método para retornar uma lista com todos os clientes
+        obtidos do banco de dados
+     */
+    public List<Cliente> obterPorNome(String nome) throws Exception {
+
+        //Escrever o comando SQL que será executado no banco de dados
+        var sql = """
+                    SELECT id, nome, email, telefone, datacadastro, ativo
+                    FROM clientes
+                    WHERE ativo = 1 AND nome ILIKE ?
+                """;
+
+        //Abrir conexão com o banco de dados
+        var connection = connectionFactory.getConnection();
+
+        //Executar o comando SQL no banco de dados
+        var statement = connection.prepareStatement(sql);
+        statement.setString(1, "%" + nome + "%");
+        var result = statement.executeQuery();
+
+        var lista = new ArrayList<Cliente>(); //Criando uma lista vazia
+
+        while(result.next()) {
+            var cliente = new Cliente(); //Criando um objeto da classe cliente
+
+            cliente.setId(result.getInt("id"));
+            cliente.setNome(result.getString("nome"));
+            cliente.setEmail(result.getString("email"));
+            cliente.setTelefone(result.getString("telefone"));
+            cliente.setDataCadastro(result.getTimestamp("datacadastro"));
+            cliente.setAtivo(result.getInt("ativo"));
+
+            lista.add(cliente); //adicionando o cliente na lista
+        }
+
+        //fechando a conexão com o banco de dados
+        connection.close();
+
+        return lista; //retornando a lista
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
